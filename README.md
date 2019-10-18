@@ -1,4 +1,4 @@
-# AWS Client-Side React App for the AWS Serverless Project
+# Client-Side React App for the AWS Serverless Project
+[AWS Serverless](https://github.com/aaronwht/aws-serverless) companion project.  
 
-This project is intendid to be used with it's [AWS Serverless](https://github.com/aaronwht/aws-serverless) companion project.  
-Combined, these apps produce a Serverless CRUD app that you may run locally.  This includes the UI, API Gateway, Lambda functions, and DynamoDB - all serverless in the AWS ecosystem.
+This app connects to the [AWS Serverless](https://github.com/aaronwht/aws-serverless) AWS Serveless companion project to produce a serverless CRUD application running locally.  This repo includes the UI client-side for the whole project.
