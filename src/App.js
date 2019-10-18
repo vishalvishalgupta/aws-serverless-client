@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 
 export default () => {
@@ -13,7 +14,7 @@ export default () => {
         const { data: { persons } } = await axios.get(`http://localhost:3030`)
         setPersons(persons)
     })()
-  }, [persons])
+  }, [])
 
   function handleChange(e) {
     e.preventDefault()
@@ -39,30 +40,43 @@ export default () => {
     if (data.status === 'error') return setMessage(data.message)
 
     if (data.status === 'success') {
-      if (data.personKey) {
-        let currentPersons = persons
-        currentPersons.push({ personKey: data.personKey, firstName, lastName, age })
-        setPersons(currentPersons)
-      }
       setFirstName('')
       setLastName('')
       setAge('')
+      
+      if (data.personKey) {
+        let currentPersons = persons
+        currentPersons.push({ personKey: data.personKey, firstName, lastName, age })
+        setPersons([])
+        setPersons(currentPersons)
+      }
     }
   }
 
   async function handleDelete(e) {
     setMessage('')
-    const { personKey } = e
-    const { data } = await axios.post('http://localhost:3030/delete', { personKey })
-    if (data.status === 'error') return setMessage(data.message)
 
-    if (data.status === 'success') {
-      let currentPersons = persons
-      const index = currentPersons.indexOf(personKey)
-      if (index !== -1) {
-        currentPersons.splice(index, 1)
-        setPersons(currentPersons)
+    // this is a fire-and-forget, unless we recieve an error back
+    let currentPersons = persons
+    currentPersons.map((person, i) => {
+      if (person.personKey === e.personKey) {
+        currentPersons.splice(i, 1)
       }
+    })
+    setPersons(currentPersons)
+
+    const { data } = await axios.post('http://localhost:3030/delete', { personKey: e.personKey })
+    // upon error, re-hydrate record
+    if (data.status === 'error') {
+      currentPersons = persons
+
+      currentPersons.push({
+        personKey: e.personKey.personKey,
+        firstName: e.firstName,
+        lastName: e.lastName,
+        age: e.age
+      })
+      return setMessage(data.message)
     }
   }
 
@@ -84,7 +98,7 @@ export default () => {
       <br/>
       { persons && persons.length === 0 && <div>No people found</div>}
       { persons && persons.map((person) => {
-          return <div key={person.personKey}>{`${person.firstName} ${person.lastName} ${person.age}`} <span onClick={() => handleDelete(person)}>x</span></div>
+          return <div key={person.personKey}><Link to={`/person/${person.personKey}`}>{`${person.firstName} ${person.lastName} ${person.age}`}</Link> <span onClick={() => handleDelete(person)}>x</span></div>
         })
       }
     </div>

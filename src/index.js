@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom'
 import { BrowserRouter, Route, Switch } from 'react-router-dom'
 import './index.css'
 import App from './App'
+import Person from './Person'
 // import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
 <BrowserRouter>
     <Switch>
-      <Route path="/" exact component={App} />     
+      <Route path="/" exact component={App} />
+      <Route path="/person/:id" component={Person} />
     </Switch>
   </BrowserRouter>,
 document.getElementById('root'))
