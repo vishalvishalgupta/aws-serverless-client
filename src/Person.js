@@ -10,7 +10,7 @@ export default (props) => {
   useEffect(() => {
     if (typeof props.match.params.id !== 'undefined') {
         (async () => {
-            const { data: { person} } = await axios.get(`http://localhost:3030/person/${props.match.params.id}`)
+            const { data: { person} } = await axios.get(`${process.env.REACT_APP_API}person/${props.match.params.id}`)
             setFirstName(person.firstName)
             setLastName(person.lastName)
             setAge(person.age)

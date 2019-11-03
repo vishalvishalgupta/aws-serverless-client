@@ -11,7 +11,7 @@ export default () => {
 
   useEffect(() => {
     (async () => {
-        const { data: { persons } } = await axios.get(`http://localhost:3030`)
+        const { data: { persons } } = await axios.get(`${process.env.REACT_APP_API}`)
         setPersons(persons)
     })()
   }, [])
@@ -36,7 +36,7 @@ export default () => {
 
   async function handleSubmit() {
     setMessage('')
-    const { data } = await axios.post(`http://localhost:3030/add`, { firstName, lastName, age })
+    const { data } = await axios.post(`${process.env.REACT_APP_API}add`, { firstName, lastName, age })
     if (data.status === 'error') return setMessage(data.message)
 
     if (data.status === 'success') {
@@ -65,7 +65,7 @@ export default () => {
     })
     setPersons(currentPersons)
 
-    const { data } = await axios.post('http://localhost:3030/delete', { personKey: e.personKey })
+    const { data } = await axios.post(`${process.env.REACT_APP_API}delete`, { personKey: e.personKey })
     // upon error, re-hydrate record
     if (data.status === 'error') {
       currentPersons = persons
