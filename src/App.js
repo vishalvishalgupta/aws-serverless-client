@@ -80,6 +80,15 @@ export default () => {
     }
   }
 
+  async function upload(e) {
+    const file = e.target.files[0]
+
+    e.preventDefault()
+    const { data: { signedUrl } } = await axios.post(`${process.env.REACT_APP_API}get-upload-filename`, { fileName: file.name })
+    const returnedData = await axios.put(`${signedUrl}`, file, { headers: { 'Content-Type': 'image/*' } })
+    console.log(returnedData)
+  }
+
   return (
     <div className="App" style={{ padding: '15px'}}>
       <form onSubmit={() => handleSubmit()}>
@@ -101,6 +110,7 @@ export default () => {
           return <div key={person.personKey}><Link to={`/person/${person.personKey}`}>{`${person.firstName} ${person.lastName} ${person.age}`}</Link> <span onClick={() => handleDelete(person)}>x</span></div>
         })
       }
+      <input type="file" onChange={(e) => upload(e)} />
     </div>
   )
 }
