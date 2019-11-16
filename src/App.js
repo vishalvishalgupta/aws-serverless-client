@@ -4,15 +4,15 @@ import axios from 'axios'
 
 export default () => {
   const [message, setMessage] = useState()
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [age, setAge] = useState('')
-  const [persons, setPersons] = useState()
+  const [city, setCity] = useState('')
+  const [stateOrProvince, setStateOrProvince] = useState('')
+  const [countryCode, setCountryCode] = useState('')
+  const [places, setPlaces] = useState()
 
   useEffect(() => {
     (async () => {
-        const { data: { persons } } = await axios.get(`${process.env.REACT_APP_API}`)
-        setPersons(persons)
+        const { data: { places } } = await axios.get(`${process.env.REACT_APP_API}`)
+        setPlaces(places)
     })()
   }, [])
 
@@ -20,14 +20,14 @@ export default () => {
     e.preventDefault()
 
     switch (e.target.name) {
-      case 'firstName':
-        setFirstName(e.target.value)
+      case 'city':
+        setCity(e.target.value)
         break
-      case 'lastName':
-        setLastName(e.target.value)
+      case 'stateOrProvince':
+        setStateOrProvince(e.target.value)
         break
-      case 'age':
-        setAge(e.target.value)
+      case 'countryCode':
+        setCountryCode(e.target.value)
         break
       default:
         break
@@ -36,19 +36,19 @@ export default () => {
 
   async function handleSubmit() {
     setMessage('')
-    const { data } = await axios.post(`${process.env.REACT_APP_API}add`, { firstName, lastName, age })
+    const { data } = await axios.post(`${process.env.REACT_APP_API}create`, { city, stateOrProvince, countryCode })
     if (data.status === 'error') return setMessage(data.message)
 
     if (data.status === 'success') {
-      setFirstName('')
-      setLastName('')
-      setAge('')
+      setCity('')
+      setStateOrProvince('')
+      setCountryCode('')
       
-      if (data.personKey) {
-        let currentPersons = persons
-        currentPersons.push({ personKey: data.personKey, firstName, lastName, age })
-        setPersons([])
-        setPersons(currentPersons)
+      if (data.placeKey) {
+        let currentPlaces = places
+        currentPlaces.push({ placeKey: data.placeKey, city, stateOrProvince, countryCode })
+        setPlaces([])
+        setPlaces(currentPlaces)
       }
     }
   }
@@ -57,24 +57,24 @@ export default () => {
     setMessage('')
 
     // this is a fire-and-forget, unless we recieve an error back
-    let currentPersons = persons
-    currentPersons.map((person, i) => {
-      if (person.personKey === e.personKey) {
-        currentPersons.splice(i, 1)
+    let currentPlaces = places
+    currentPlaces.map((place, i) => {
+      if (place.placeKey === e.placeKey) {
+        currentPlaces.splice(i, 1)
       }
     })
-    setPersons(currentPersons)
+    setPlaces(currentPlaces)
 
-    const { data } = await axios.post(`${process.env.REACT_APP_API}delete`, { personKey: e.personKey })
+    const { data } = await axios.post(`${process.env.REACT_APP_API}delete`, { placeKey: e.placeKey })
     // upon error, re-hydrate record
     if (data.status === 'error') {
-      currentPersons = persons
+      currentPlaces = places
 
-      currentPersons.push({
-        personKey: e.personKey.personKey,
-        firstName: e.firstName,
-        lastName: e.lastName,
-        age: e.age
+      currentPlaces.push({
+        placeKey: e.placeKey.placeKey,
+        city: e.city,
+        stateOrProvince: e.stateOrProvince,
+        countryCode: e.countryCode
       })
       return setMessage(data.message)
     }
@@ -83,31 +83,29 @@ export default () => {
   async function upload(e) {
     const file = e.target.files[0]
 
-    e.preventDefault()
-    const { data: { signedUrl } } = await axios.post(`${process.env.REACT_APP_API}get-upload-filename`, { fileName: file.name })
-    const returnedData = await axios.put(`${signedUrl}`, file, { headers: { 'Content-Type': 'image/*' } })
-    console.log(returnedData)
+    const { data: { signedUrl } } = await axios.post(`${process.env.REACT_APP_API}get-upload-location`, { fileName: file.name })
+    const returnedData = axios.put(`${signedUrl}`, file, { headers: { 'Content-Type': '*/*' } })
   }
 
   return (
     <div className="App" style={{ padding: '15px'}}>
       <form onSubmit={() => handleSubmit()}>
         <div style={{ height: '15px' }}>{message}</div>
-        First Name:<br/>
-        <input type="text" value={firstName} name="firstName" onChange={handleChange} /><br/><br/>
+        City:<br/>
+        <input type="text" value={city} name="city" onChange={handleChange} /><br/><br/>
 
-        Last Name:<br/>
-        <input type="text" value={lastName} name="lastName" onChange={handleChange} /><br/><br/>
+        State or Province:<br/>
+        <input type="text" value={stateOrProvince} name="stateOrProvince" onChange={handleChange} /><br/><br/>
 
-        Age:<br/>
-        <input type="text" value={age} name="age" onChange={handleChange} /><br/><br/>
+        Country Code:<br/>
+        <input type="text" value={countryCode} name="countryCode" onChange={handleChange} /><br/><br/>
 
         <button type="button" onClick={() => handleSubmit()}>Submit</button>
       </form>
       <br/>
-      { persons && persons.length === 0 && <div>No people found</div>}
-      { persons && persons.map((person) => {
-          return <div key={person.personKey}><Link to={`/person/${person.personKey}`}>{`${person.firstName} ${person.lastName} ${person.age}`}</Link> <span onClick={() => handleDelete(person)}>x</span></div>
+      { places && places.length === 0 && <div>No places found</div>}
+      { places && places.map((place) => {
+          return <div key={place.placeKey}><Link to={`/place/${place.placeKey}`}>{`${place.city}, ${place.stateOrProvince} ${place.countryCode}`}</Link> <span onClick={() => handleDelete(place)}>x</span></div>
         })
       }
       <input type="file" onChange={(e) => upload(e)} />
