@@ -6,17 +6,38 @@ export default (props) => {
   const [city, setCity] = useState('')
   const [stateOrProvince, setStateOrProvince] = useState('')
   const [countryCode, setCountryCode] = useState('')
+  const [picture, setPicture] = useState('')
+  const [updateButton, setUpdateButton] = useState('Submit')
 
   useEffect(() => {
     if (typeof props.match.params.id !== 'undefined') {
-        (async () => {
-            const { data: { place} } = await axios.get(`${process.env.REACT_APP_API}place/${props.match.params.id}`)
-            setCity(place.city)
-            setStateOrProvince(place.stateOrProvince)
-            setCountryCode(place.countryCode)
-        })()
+      (async () => {
+        const { data : { place } } = await axios.get(`${process.env.REACT_APP_API}place/${props.match.params.id}`)
+        if (place) {
+          setUpdateButton('Update')
+
+          if (place.picture) setPicture(place.picture)
+          if (place.city) setCity(place.city)
+          if (place.stateOrProvince) setStateOrProvince(place.stateOrProvince)
+          if (place.countryCode) setCountryCode(place.countryCode)
+        }
+      })()
     }
   }, [props.match.params.id])
+
+  async function upload(e) {
+    const file = e.target.files[0]
+
+    const { data } = await axios.post(`${process.env.REACT_APP_API}signed-url`, { fileName: file.name })
+    const { picture, signedUrl } = data
+
+    await axios.put(`${signedUrl}`, file, { headers: { 'Content-Type': '*/*' } })
+    await axios.post(`${process.env.REACT_APP_API}save-picture`, {
+      placeKey: props.match.params.id,
+      picture
+    })
+    setPicture(picture)
+  }
 
   function handleChange(e) {
     e.preventDefault()
@@ -36,6 +57,11 @@ export default (props) => {
     }
   }
 
+  function deletePicture() {
+    axios.post(`${process.env.REACT_APP_API}delete-picture`, { placeKey: props.match.params.id, picture })
+    setPicture('')
+  }
+
   async function handleSubmit() {
     setMessage('')
     const { data } = await axios.post(`${process.env.REACT_APP_API}update`, { placeKey: props.match.params.id, city, stateOrProvince, countryCode })
@@ -48,6 +74,14 @@ export default (props) => {
   return (
     <div style={{ padding: '15px'}}>
       <form onSubmit={() => handleSubmit()}>
+        {(picture && (
+          <div>
+            <img src={`${process.env.REACT_APP_PICTURE_URL + picture}`} style={{ maxHeight: "300px", maxWidth: "300px" }} /><br/>
+            <span onClick={() => deletePicture() } style={{ fontSize: ".85rem" }}>Delete Picture</span>
+          </div>
+        ))}
+        {(!picture && <input type="file" onChange={(e) => upload(e)} />)}
+
         <div style={{ height: '15px' }}>{message}</div>
         City:<br/>
         <input type="text" value={city} name="city" onChange={handleChange} /><br/><br/>
@@ -58,7 +92,7 @@ export default (props) => {
         Country Code:<br/>
         <input type="text" value={countryCode} name="countryCode" onChange={handleChange} /><br/><br/>
 
-        <button type="button" onClick={() => handleSubmit()}>Submit</button>
+        <button type="button" onClick={() => handleSubmit()}>{updateButton}</button>
       </form>
     </div>
   )
